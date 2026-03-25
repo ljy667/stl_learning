@@ -5,7 +5,6 @@
 #include <map>
 #include <list>
 
-
 //适合顺序结构，非链式结构
 template<typename T>
 struct Alloc
@@ -89,12 +88,13 @@ struct Alloc_int{
     }
     template<typename T>
     struct rebind{
-        using other =Alloc<T>
+        using other =Alloc<T>;
     };
 };
 
 
 //链式  typename alloc = std::allocator<T>代表什么意义
+//给 alloc 设置默认值—— 如果用户使用 List 时不指定自定义分配器，就默认用 C++ 标准库的 std::allocator<T>（标准内存分配器）。
 template<typename T,typename alloc = std::allocator<T>>
 struct List{
     struct Node
@@ -113,15 +113,17 @@ struct List{
         {
             //header=new Node(std::forward<Args>(args)...);
           void* header = alloc_.allocate(sizeof(Node));
-          Node* new(header) Node(std::forward<Args>(args)...);
+          Node* new_node = new(header) Node(std::forward<Args>(args)...);
         }
     }
 
 private:
     Node* header =nullptr;
-    typename alloc::template rebind<Node>::other alloc_ ; // template、typename的作用 二一性？
-};
+    typename alloc::template rebind<Node>::other alloc_ ; 
+    // template、typename的作用 二一性？
+    //编译器默认会把依赖名称当作 “非类型”（比如变量 / 函数）; typename 明确告诉编译器：alloc::rebind<Node>::other 是一个类型名称。
 
+};
 
 
 
@@ -130,5 +132,8 @@ int main(int argc,const char *argv[])
     std::vector<int,Alloc<int>> ve {1,2,3} ;
     std::list<int,Alloc<int>> li(ve.begin(),ve.end());
     //ve.begin()：指向 ve 第一个元素的迭代器（起始位置）；ve.end()：指向 ve 最后一个元素下一个位置的迭代器（结束位置）；
-
+    std::vector<int> vec (1,2) ;
+    std::vector<int> vec2 {1,2} ;
 }
+
+

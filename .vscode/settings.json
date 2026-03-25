@@ -28,5 +28,14 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp"
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": [
+        {
+            "path": "test/python.py",
+            "envManager": "ms-python.python:conda",
+            "packageManager": "ms-python.python:conda"
+        }
+    ]
 }
