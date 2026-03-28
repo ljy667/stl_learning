@@ -28,6 +28,14 @@ namespace cc {
         private:
         bool is_set{false};
     };
+
+    //位置参数
+    struct PosArg{
+        std::string name;
+        std::string help;
+        bool required;
+    };
+
     //聚合？
 
     //若不仅需要存储解析的东西，并且需要承担一些方法，用class
@@ -44,9 +52,9 @@ namespace cc {
         //interfaces
         
         private:
-        std::unordered_map<std::string , Arg>  
+        std::unordered_map<std::string , Arg> m_args ;  
+        std::vector<PosArg> pos_args;
         
-        
-
+        std::unordered_map<std::string ,std::string> pos_values;
     };
 };
