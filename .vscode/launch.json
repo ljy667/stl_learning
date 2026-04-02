@@ -8,14 +8,15 @@
             "name": "(gdb) 启动",
             "type": "cppdbg",
             "request": "launch",
-            "program": "输入程序名称，例如 ${workspaceFolder}/a.exe",
-            "args": [],
+           // "program": "输入程序名称，例如 ${workspaceFolder}/a.exe",
+            "program": "${workspaceFolder}/bin/demo.exe",
+            "args": ["--count=3"],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",   //"${workspaceFolder}build/test.exe"
+            "cwd": "${workspaceFolder}",   //"${workspaceFolder}build/test.exe"
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/path/to/gdb",
+           // "miDebuggerPath": "/path/to/gdb",
             "setupCommands": [
                 {
                     "description": "为 gdb 启用整齐打印",
@@ -26,9 +27,30 @@
                     "description": "将反汇编风格设置为 Intel",
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
+                },
+                {   "description": "Enable pretty-printing for gdb", 
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true 
+                },
+                 {
+                    "description": "启用STL容器可视化(显示string/map)",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "强制UTF-8字符集(解决报错)",
+                    "text": "set charset UTF-8",
+                    "ignoreFailures": false
+                },
+                {
+                    "description": "修复字符串显示",
+                    "text": "set print pretty on",
+                    "ignoreFailures": false
                 }
-            ]
+                 ]
+            
         }
 
     ]
 }
+

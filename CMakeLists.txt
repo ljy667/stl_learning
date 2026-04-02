@@ -12,6 +12,12 @@ set(CMAKE_CXX_STANDARD 20)
 enable_testing()
 
 
+
+if (MSVC)
+  add_compile_options(/utf-8)
+else()
+  add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
+endif()
 #如果使用mingw，添加编译选项：静态链接，减少依赖
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc")
 
@@ -49,3 +55,4 @@ endif()
 add_subdirectory(src)
 
 add_subdirectory(test/stl)
+add_subdirectory(test/ArgParser)
