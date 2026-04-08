@@ -96,7 +96,7 @@ namespace cc
                         throw std::invalid_argument("unknown argment: --" + key);
                     }
                     it->second.value = token.substr(equal_pos+1);
-                    it->second.is_set = true;
+                    it->second.is_set = true;  //成功解析，则设置is_set为true
                     continue;
                 }
                 else{
@@ -141,11 +141,16 @@ namespace cc
             
             //token为已有的对象，效果与push_back一样
             //没有进入上述逻辑的，剩余的都是位置参数
-            pos_arg_view.emplace_back(token);
+            pos_arg_view.emplace_back(token); 
         }
 
+        //
         for(size_t i =0 ; i < pos_args.size(); i++)
-            {
+            {   
+                if(pos_arg_view.size() > pos_args.size())
+                {
+                    throw std::invalid_argument("too many positional arguments");
+                }
                 if(i<pos_arg_view.size()){
                     //配置pos_values
                     pos_values[pos_args[i].name] = pos_arg_view[i];
@@ -153,6 +158,7 @@ namespace cc
                     throw std::invalid_argument("Required Position args:<" + pos_args[i].name + ">");
                 }
             } 
+        // 校验长短参
         for(auto &[key,arg] : args_)
             {
                 if(arg.required && !arg.is_set)

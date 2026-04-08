@@ -56,3 +56,4 @@ add_subdirectory(src)
 
 add_subdirectory(test/stl)
 add_subdirectory(test/ArgParser)
+add_subdirectory(test/INiParser)

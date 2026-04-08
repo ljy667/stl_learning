@@ -10,9 +10,9 @@ set_target_properties(ArgParser PROPERTIES
 
 target_include_directories(ArgParser
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-add_executable(demo src/demo.cpp)
+add_executable(ArgParser_demo src/demo.cpp)
 
-target_link_libraries(demo PUBLIC ArgParser)
+target_link_libraries(ArgParser_demo PUBLIC ArgParser)
