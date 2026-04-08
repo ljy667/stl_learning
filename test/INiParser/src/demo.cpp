@@ -1,5 +1,6 @@
 
 #include "string_splits.hpp"
+#include "trim.hpp"
 
 int main()
 {
@@ -12,5 +13,9 @@ int main()
     {
         std::cout << each_result << "\n" ;
     }
+    auto trimpolicy=TrimPolicy::Left;
+    std::string str_temp = "   saadsdad   ";
+    const auto result_v1 = trim(str_temp,trimpolicy);
 
+    std::cout << result_v1 << std::endl;
 }

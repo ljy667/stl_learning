@@ -38,7 +38,7 @@ inline std::string_view remove_one_prefix_view(const std::string& s)
 }
 
 
-int main(){
+/* int main(){
     std::string_view sv  = "hello , c++";
     std::string string_source  =  "hello , this is" ;
     std::string_view string_source_view (string_source);
@@ -53,3 +53,4 @@ int main(){
     std::string owned_sv(sv) ;
 
 }
+ */
