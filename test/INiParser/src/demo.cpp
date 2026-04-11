@@ -19,3 +19,4 @@ int main()
 
     std::cout << result_v1 << std::endl;
 }
+

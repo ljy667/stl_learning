@@ -8,7 +8,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 
 add_library(kinematic STATIC
-    src/M20id35_CarDist.cpp
+    src/car_control.cpp
 )
 
 target_include_directories(kinematic
