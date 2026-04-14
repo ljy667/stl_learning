@@ -1,10 +1,13 @@
 #pragma once
+#include <cstddef>
 
 template<class T>
 class MyAllocator{
+
+    public:
     //定义别名
     using value_type = T;
-    using size_type = std::size_t
+    using size_type = std::size_t ;
     //std::ptrdiff_t:存储两个同类型指针相减的结果
     using difference_type = std::ptrdiff_t;
     using pointer = value_type*;
@@ -14,7 +17,7 @@ class MyAllocator{
     //Stack* s = new(mem) Stack(4);
     static pointer allocate(size_type count)
     {
-        auto s =  operator new (count * sizeof(value_type)) ;
+        auto s =  (pointer)operator new (count * sizeof(value_type)) ;
         
         return s ;
 

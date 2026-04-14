@@ -14,9 +14,9 @@ target_include_directories(cxx_utils_lib PUBLIC
 ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 
-add_executable(demo main.cpp)
+add_executable(cxx_demo main.cpp)
 
-target_include_directories(demo PUBLIC 
+target_include_directories(cxx_demo PUBLIC 
 ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_libraries(demo PUBLIC cxx_utils_lib)
+target_link_libraries(cxx_demo PUBLIC cxx_utils_lib)

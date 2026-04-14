@@ -2,7 +2,7 @@
 #pragma once 
 #include "List_Allocator.hpp"
 #include <iterator>
-
+#include <iostream>
 /* list:
     iterator
     *
@@ -45,8 +45,8 @@ class List_Iterator{
     using Node = List_Node<T>;
     using iterator = List_Iterator<T>;
 
-    Node* m_pNode ;
     public:
+    Node* m_pNode ;
     List_Iterator() :m_pNode(nullptr) {};
     List_Iterator(Node* const m_pNode) :m_pNode(m_pNode){};
     //拷贝构造
@@ -54,13 +54,13 @@ class List_Iterator{
 
     //析构不用写，不涉及资源的管理
 
-    reference operator*() const {return m_pNode->data };
+    reference operator*() const {return m_pNode->data; }
 
     /* m_pNode：指向节点结构体 / 类的指针成员变量
     m_pNode->data：通过指针访问该节点的 data 数据成员
     &：取地址运算符，整体为获取节点 data 成员的内存地址 */
 
-    pointer operator-> () const { return &m_pNode->data }; //指向储存Node
+    pointer operator-> () const { return &m_pNode->data; } //指向储存Node
     
     // 迭代器的比较 ，即判断两个迭代器是否指向同一个 Node
     bool operator == (const iterator& other) const { return m_pNode == other.m_pNode;}
@@ -83,7 +83,7 @@ class List_Iterator{
     {
         Node* tmp = m_pNode;
         m_pNode = m_pNode->prev;
-        return tmp
+        return tmp;
     }
 
 };  
@@ -91,10 +91,57 @@ class List_Iterator{
 
 
 //list 可能有非常复杂的内存分配机制
-template<class T , class Alloc = MyAllocator<T>>
+template<class T , class Alloc = MyAllocator<List_Node<T>>>
 class MyList
 {
+    public:
+        using value_type = T;
+        using pointer = value_type*;
+        using reference = value_type& ;
 
+        using Node = List_Node<T>;
+        using iterator = List_Iterator<T> ;
+
+    private:
+        Node* m_pDummy ;
+
+        static Node* allocNode(){
+            return Alloc::allocate(1) ;
+        }
+        static void deallocate(Node* p)
+        {
+            Alloc::deallocate(p);
+        } 
+
+        static Node* createNode(const value_type& value){
+            Node* newNode = allocNode();
+            new (&newNode -> data) value_type(value) ;
+        }
+    public:
+        MyList(){
+            m_pDummy = allocNode();
+            m_pDummy -> prev = m_pDummy;
+            m_pDummy -> next = m_pDummy;
+        }
+        
+        iterator insert(iterator pos , const value_type& value){
+           Node* node_ptr = createNode(value) ; 
+           node_ptr -> next = pos.m_pNode ;
+           node_ptr -> prev = pos.m_pNode ->prev ;
+           pos.m_pNode -> prev -> next = node_ptr ;
+           pos.m_pNode -> prev = node_ptr ; 
+        }
+
+        void show() const {
+            for (iterator it = begin() ; it != end(); it++){
+                std::cout << *it << '\n' ;
+            }
+        }
+
+        Node* begin() const {return this -> m_pDummy->next ;}
+        Node* end() const {return this -> m_pDummy -> prev ;} 
+        Node* begin() {return this -> m_pDummy->next ;}
+        Node* end() {return this -> m_pDummy -> prev ;} 
 };
 
 
