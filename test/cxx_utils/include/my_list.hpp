@@ -98,7 +98,7 @@ class MyList
         using value_type = T;
         using pointer = value_type*;
         using reference = value_type& ;
-
+        using size_type = std::size_t ;
         using Node = List_Node<T>;
         using iterator = List_Iterator<T> ;
 
@@ -115,10 +115,20 @@ class MyList
 
         static Node* createNode(const value_type& value){
             Node* newNode = allocNode();
+            //这里需求 value_type， 具有拷贝构造函数，
             new (&newNode -> data) value_type(value) ;
+            
+            return newNode ;
+
         }
     public:
         MyList(){
+
+            /* 尾节点 next → 哨兵
+            哨兵 next → 头节点
+            头节点 prev → 哨兵
+            哨兵 prev → 尾节点 */
+
             m_pDummy = allocNode();
             m_pDummy -> prev = m_pDummy;
             m_pDummy -> next = m_pDummy;
@@ -130,6 +140,18 @@ class MyList
            node_ptr -> prev = pos.m_pNode ->prev ;
            pos.m_pNode -> prev -> next = node_ptr ;
            pos.m_pNode -> prev = node_ptr ; 
+
+           return node_ptr ;
+        }
+
+        //批量插入
+        iterator insert(iterator pos , size_type count , const value_type& value){
+            iterator it = pos ; 
+            for (size_type i = 0 ; i < count ; i++ )
+            {
+                it = insert(it , value) ;
+            }
+            return it ;
         }
 
         void show() const {
