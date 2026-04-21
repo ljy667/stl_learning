@@ -142,12 +142,16 @@ double car_dist(const std::vector<double>& xyzwpr, const std::vector<double>& tc
 
         // |cosθ3|=<1 ,
         double delta = (a3 * a3 + d4 * d4) - cm3 * cm3;
+        
+        // cm3为投影，投影必然小于两臂之长，
+        // 这个delta在第三轴从 0 到 180 内 先是正比，后是反比
+        
+
+
 
         theta3s.push_back(delta);
     }
 
-    // 获取最大值
-    
     double max_val = *std::max_element(theta3s.begin(), theta3s.end());
     return max_val;
 }
