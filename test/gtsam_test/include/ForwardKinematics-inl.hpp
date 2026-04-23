@@ -27,8 +27,8 @@ namespace gpmp2 {
         // jpx_mat => 每列前三个欧拉角，后三个坐标
         //===============================================
 
-        gtsam::Matrix jpx_mat(6 , nr_links_); 
-        for(std::size_t i = 0 ; i < nr_links_ ; i++) 
+        gtsam::Matrix jpx_mat(6 , this->nr_links_); 
+        for(std::size_t i = 0 ; i < this->nr_links_ ; i++) 
             // 每列元素配置
             // gtsam::vector6()具有<<操作符
             // jpx[i] 
@@ -36,7 +36,7 @@ namespace gpmp2 {
                     jpx[i].rotation().yaw(),
                     jpx[i].rotation().pitch(),
                     jpx[i].rotation().roll()),
-                    jpx[i].translation().vector()
+                    jpx[i].translation()
                 ).finished();
             
                 /* Eigen 中所有 **<< 流式初始化 **，最后都必须： .finished()
@@ -53,10 +53,10 @@ namespace gpmp2 {
         forwardKinematics(jp , std::nullopt , jpx ,std::nullopt);
 
         // convert vector in matrix
-        gtsam::Matrix jpx_mat(3, nr_links);
+        gtsam::Matrix jpx_mat(3, this->nr_links_);
         
-        for(std::size_t i = 0; i < nr_links_ ; i++)
-            jpx_mat.col(i) = jpx[i].translation().vector() ;
+        for(std::size_t i = 0; i < this->nr_links_ ; i++)
+            jpx_mat.col(i) = jpx[i].translation();
         return jpx_mat ; 
     }
 
@@ -66,11 +66,11 @@ namespace gpmp2 {
 
         std::vector<gtsam::Pose3> jpx;
         std::vector<gtsam::Vector3> jvx;
-        forwardKinematics(jp, jv, jpx, jvx);
+        forwardKinematics(jp, std::cref(jv), jpx, std::ref(jvx));
 
         // convert vector in matrix
-        gtsam::Matrix jpv_mat(3, nr_links_);
-        for (size_t i = 0; i < nr_links_; i++)
+        gtsam::Matrix jpv_mat(3, this->nr_links_);
+        for (std::size_t i = 0; i < this->nr_links_; i++)
             jpv_mat.col(i) = jvx[i];
         return jpv_mat;
         }

@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include <functional>
 #include <optional>
 
 namespace gpmp2{
@@ -21,7 +22,7 @@ class ForwardKinematics {
 
     public:
         typedef POSE Pose;
-        typedef VELOCITY    VELOCITY;
+        typedef VELOCITY Velocity;
 
     ForwardKinematics() : dof_(0) , nr_links_(0) {} ;
     ForwardKinematics(std::size_t dof , std::size_t nr_links) : dof_(dof) , nr_links_(nr_links){}
@@ -43,16 +44,19 @@ class ForwardKinematics {
    *  @param jvx link velocities in 3D work space, no angular rate
    *  @param J_jpx_jp et al. optional Jacobians
    **/
-    virtual void forwardKinematics(const Pose& jp , std::optional<const velocity&> jv , 
-    std::vector<gtsam::Pose3>& jpx , std::optional<std::vector<gtsam::Vector3>&> jvx , 
-    std::optional<std::vector<gtsam::Matrix>&> J_jpx_jp = std::nullopt,
-    std::optional<std::vector<gtsam::Matrix>&> J_jpv_jp = std::nullopt,
-    std::optional<std::vector<gtsam::Matrix>&> J_jvx_jp = std::nullopt
+    virtual void forwardKinematics(
+            const Pose& jp , 
+            std::optional<std::reference_wrapper<const Velocity>> jv , 
+            std::vector<gtsam::Pose3>& jpx , 
+            std::optional<std::reference_wrapper<std::vector<gtsam::Vector3>>> jvx , 
+            std::optional<std::reference_wrapper<std::vector<gtsam::Matrix>>> J_jpx_jp = std::nullopt,
+            std::optional<std::reference_wrapper<std::vector<gtsam::Matrix>>> J_jpv_jp = std::nullopt,
+            std::optional<std::reference_wrapper<std::vector<gtsam::Matrix>>> J_jvx_jp = std::nullopt
     ) const  = 0 ;
     
     gtsam::Matrix forwardKinematicsPose(const Pose& jp) const;
     gtsam::Matrix forwardKinematicsPosition(const Pose& jp) const ;
-    gtsam::Matrix forwardKinematicsVel(const Pose& jp ,const velocity& jv) const ;
+    gtsam::Matrix forwardKinematicsVel(const Pose& jp ,const Velocity& jv) const ;
 
     ///accesses
     std::size_t dof() const {return this -> dof_;}
