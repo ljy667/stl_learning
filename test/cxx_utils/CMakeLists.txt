@@ -9,6 +9,8 @@ add_library(cxx_utils_lib ${SOURCE})
 set_target_properties(cxx_utils_lib PROPERTIES
 RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
+set_target_properties(cxx_utils_lib PROPERTIES 
+LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 target_include_directories(cxx_utils_lib PUBLIC 
 ${CMAKE_CURRENT_SOURCE_DIR}/include)

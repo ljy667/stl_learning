@@ -2,13 +2,23 @@
 #include "my_list.hpp"
 
 void TestList(){
-    MyList<int> MyList;
+    MyList<int> myList;
 
     for (int i = 0 ; i < 5; i++ ){
-        MyList.insert(MyList.end() ,i);
+        myList.insert(myList.end() ,i);
     }
 
-    MyList.show();
+    myList.show();
+
+    auto it = myList.end();
+    --it ;
+    myList.erase(it);
+
+    myList.show();
+
+
+    myList.erase(myList.begin() , --myList.end());
+    myList.show() ;
 }
 
 int main(){
