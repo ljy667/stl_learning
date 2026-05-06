@@ -151,6 +151,7 @@ namespace gpmp2 {
                 //https://www.doubao.com/thread/w773ea478b4328489
 
                 if(J_jpx_jp){ 
+                //填充J_jpx_jp的第i个矩阵
                 gtsam::Matrix Jp =  (*J_jpx_jp).get()[i];
                 const gtsam::Matrix4 inv_jpx_i = jpx[i].inverse().matrix();
                 for(std::size_t j = 0 ; j<= i ; j++) 
