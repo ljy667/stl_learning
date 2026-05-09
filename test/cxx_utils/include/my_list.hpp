@@ -229,6 +229,51 @@ class MyList
             deallocate(m_pDummy);
         }
 
+        void assign(size_type count , const value_type& value)
+        {
+            //方法1.  先clear，再insert ，逐个插入
+            //方法2   重新赋值给value，本来list元素少的话，则删除，反之则插入
+
+            size_type len = 0;
+            iterator it = begin();
+            //双变量同步递增， 无初始化for循环
+            for( ; len< count && it != end() ; it++ , len++)
+            {
+                *it = value;
+            }
+            if(len < count ) 
+                insert(end() , count - len , value);
+            //len >= count
+            else{
+                erase(it ,end());
+            }
+        }
+
+        void resize (size_type count , const value_type& value)
+        {
+            /* resize 仅修改容器大小
+            Resizes the container to contain count elements, does nothing if count == size().
+            If the current size is greater than count, the container is reduced to its first count elements.
+            If the current size is less than count, then:
+                1) Additional default-inserted elements are appended.
+                2) Additional copies of value are appended. */
+
+            iterator it = begin() ;
+            size_type len  = 0 ;
+            for ( ; it != end() && len < count ; ++it , ++len)
+            {
+
+            }
+            if(len < count )   //current less than count
+            {
+                insert(end() ,count - len , value);
+            }
+            else  //greater 
+            {
+                erase(it,end());
+            }
+        }
+
 
         // Node* begin() const {return this -> m_pDummy->next ;}
         // Node* end() const {return this -> m_pDummy ;} 

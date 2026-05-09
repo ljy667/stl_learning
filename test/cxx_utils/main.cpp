@@ -19,6 +19,10 @@ void TestList(){
 
     myList.erase(myList.begin() , --myList.end());
     myList.show() ;
+
+    myList.assign(10, 60);
+    myList.show() ;
+
 }
 
 int main(){
