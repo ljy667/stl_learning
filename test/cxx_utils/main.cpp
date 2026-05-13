@@ -1,5 +1,6 @@
 
 #include "my_list.hpp"
+#include "vector.hpp"
 
 void TestList(){
     MyList<int> myList;
@@ -22,11 +23,17 @@ void TestList(){
 
     myList.assign(10, 60);
     myList.show() ;
+    
+}
 
+void TestVector(){
+    cxx::vector<std::string>  myVector  {} ;
+    myVector.show() ;
 }
 
 int main(){
     TestList();
+    TestVector();
     return  0 ;
     
 }
