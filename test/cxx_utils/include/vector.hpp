@@ -116,6 +116,11 @@ namespace cxx{
             std::swap(m_start ,other.m_start);
             std::swap(m_finish,other.m_finish);
             std::swap(m_end_of_storage ,other.m_end_of_storage);
+
+            // 等价手写逻辑
+            // auto temp = m_start;
+            // m_start = other.m_start;
+            // other.m_start = temp;
         }
         
         //预留空间
@@ -124,8 +129,14 @@ namespace cxx{
             if(this->capacity()>n ){
                 return;
             }
+            //当前内存小于预留
             iterator new_start = allocate(n);
             iterator new_finish =std::uninitialized_copy(begin() ,end() ,new_start);
+            std::destroy(begin()  , end());
+            deallocate(m_start);
+            this->m_start = new_start;
+            this->m_finish = new_finish;
+            m_end_of_storage = m_start + n;
 
         }
 
