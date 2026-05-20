@@ -27,17 +27,11 @@ namespace cxx{
     vector() 
             : m_start(nullptr) ,m_finish(nullptr) , m_end_of_storage(nullptr) {}
 
-    //vector所持有的元素分别析构掉
-    ~vector(){
-
-    }        
-
 
     size_type size() const
     {
         return m_finish - m_start ;
     }
-
 
         T* m_start;     //指向这段内存开头
         T* m_finish;    //指向元素的结尾
@@ -116,6 +110,24 @@ namespace cxx{
             other.m_end_of_storage = other.m_finish = other.m_start = nullptr;
         }
 
+        void swap(vector& other)
+        {
+            //交换两个vector的资源
+            std::swap(m_start ,other.m_start);
+            std::swap(m_finish,other.m_finish);
+            std::swap(m_end_of_storage ,other.m_end_of_storage);
+        }
+        
+        //预留空间
+        void reserve(size_type n)
+        {
+            if(this->capacity()>n ){
+                return;
+            }
+            iterator new_start = allocate(n);
+            iterator new_finish =std::uninitialized_copy(begin() ,end() ,new_start);
+
+        }
 
         ~vector()
         {

@@ -29,6 +29,19 @@ void TestList(){
 void TestVector(){
     cxx::vector<std::string>  myVector  {} ;
     myVector.show() ;
+
+    cxx::vector<std::string> vec2(5 , "0");
+    vec2.show();
+
+    cxx::vector<std::string> vec3(std::move(vec2));
+    vec2.show();
+    vec3.show();
+
+    myVector.swap(vec3);
+    vec3.show();
+    myVector.show();
+
+
 }
 
 int main(){
