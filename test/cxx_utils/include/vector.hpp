@@ -117,9 +117,9 @@ namespace cxx{
         }
 
 
-
         ~vector()
         {
+            //destroy遍历 [first, last) 范围内的每一个对象，调用它们的析构函数
             std::destroy(begin() , end());  //析构资源
             deallocate(m_start);            //释放内存
         }
