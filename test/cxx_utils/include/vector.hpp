@@ -24,6 +24,19 @@ namespace cxx{
         void deallocate(T* ptr){
             operator delete(ptr);
         }
+    vector() 
+            : m_start(nullptr) ,m_finish(nullptr) , m_end_of_storage(nullptr) {}
+
+    //vector所持有的元素分别析构掉
+    ~vector(){
+
+    }        
+
+
+    size_type size() const
+    {
+        return m_finish - m_start ;
+    }
 
 
         T* m_start;     //指向这段内存开头
@@ -82,9 +95,28 @@ namespace cxx{
         }
 
         //基于两个迭代器构造
-
         template <class InpuIt>
-        
+        vector(InpuIt first , InpuIt last)
+        {
+            size_type n = std::distance(first, last);
+            m_start = allocate(n);
+            std::uninitalized_copy(first , last , m_start);
+            m_finish = m_end_of_storage = m_start + n;
+        }
+
+        //https://www.doubao.com/thread/w194ca12fc19e2bfa
+        vector(const vector& other)
+            :vector(other.begin(), other.end()){}
+        vector(vector&& other) noexcept
+        {
+            this->m_start = other.m_start;
+            this->m_finish = other.m_finish ; 
+            this->m_end_of_storage = other.m_end_of_storage;
+            //把other所有指针置nullptr，它析构时判定无内存可释放，自然不会删你已经接管的堆内存。
+            other.m_end_of_storage = other.m_finish = other.m_start = nullptr;
+        }
+
+
 
         ~vector()
         {
@@ -94,3 +126,4 @@ namespace cxx{
 
     };
 }
+    
