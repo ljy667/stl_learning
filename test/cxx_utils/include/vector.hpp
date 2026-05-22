@@ -110,6 +110,36 @@ namespace cxx{
             other.m_end_of_storage = other.m_finish = other.m_start = nullptr;
         }
 
+        //拷贝赋值
+        vector& operator=(const vector& other)
+        {
+            if(this == &other)
+            {
+                return *this;
+            }
+            //其他节点元素 大于 预设容量
+            if(other.size() > capacity())
+            {
+                vector tmp(other);
+                tmp.swap(*this);  //出函数，tmp资源释放，即原本的this资源释放
+            }
+            //其他元素大于本容器元素， 但小于容量
+            else if(other.size() > size())
+            {
+                std::copy(other.begin() , other.begin() + size() , m_start);
+                iterator m_finish  = std::uninitialized_copy(other.begin() + size() , other.end() ,m_finish);
+            }
+            else{
+                iterator new_finish = std::copy(other.begin() , other.end() ,m_start);
+                //析构原本*this 中剩余位置后的元素
+                std::destroy(new_finish , end());
+                m_finish = new_finish;
+            }
+            return *this;
+        }
+
+
+
         void swap(vector& other)
         {
             //交换两个vector的资源
