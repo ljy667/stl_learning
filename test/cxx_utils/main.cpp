@@ -42,6 +42,16 @@ void TestVector(){
     myVector.show();
 
 
+    cxx::vector<std::string> vec5(7 , "9");
+    cxx::vector<std::string> vec;
+
+    vec = vec5;
+    vec.show();
+
+    vec = std::move(vec5);
+    vec.show();
+    vec5.show();
+
 }
 
 int main(){
