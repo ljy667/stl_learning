@@ -137,7 +137,24 @@ namespace cxx{
             }
             return *this;
         }
+        //移动赋值
+        vector& operator=(vector&& other) noexcept
+        {
+            if(this == &other)
+            {
+                return *this;
+            } 
+            //本身所持有的资源释放掉
 
+            //触发元素析构
+            std::destroy(begin() , end());
+            //释放内存
+            deallocate(m_start);
+            m_start = other.m_start;
+            m_finish = other.m_finish;
+            m_end_of_storage = other.m_end_of_storage;
+            other.m_start = other.m_finish = other.m_end_of_storage = nullptr;
+        }
 
 
         void swap(vector& other)
@@ -168,6 +185,46 @@ namespace cxx{
             this->m_finish = new_finish;
             m_end_of_storage = m_start + n;
 
+        }
+
+        //方括号运算符
+        reference operator[](size_type n)
+        {
+            return *(begin() + n);
+        }
+
+        const_reference operator[](size_type n) const
+        {
+            return *(begin() + n);
+        }
+
+        reference front(){
+            return *begin();
+        }
+
+        const_reference front() const{
+            return *begin();
+        }
+
+        //end为尾后迭代器
+        /* end 属于尾后迭代器，不指向容器有效元素
+        仅作遍历终止标记，不可解引用、自减取值
+        遍历判定：元素迭代器不等于 end 即为有效位置 */
+        reference back(){
+            return *(end()-1);
+        }
+
+        const_reference back() const{
+            return *(end()-1);
+        }
+
+        T* data(){
+            return begin();
+        }
+
+        const T* data() const
+        {
+            return begin();
         }
 
         ~vector()
