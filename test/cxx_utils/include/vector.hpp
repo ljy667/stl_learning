@@ -227,6 +227,60 @@ namespace cxx{
             return begin();
         }
 
+        bool empty() const
+        {
+            return begin() == end();
+        }
+
+        void clear()
+        {
+            //清空元素，并非释放内存
+            std::destroy(begin() , end());
+            //m_finish = m_start
+            m_finish = begin();
+        }
+    
+        //重头戏insert
+        iterator insert(iterator pos , const value_type& val)
+        {
+
+        }
+
+        iterator insert(iterator pos , value_type&& val)
+        {
+            
+        }
+
+        iterator insert(iterator pos , size_type n , const value_type& val)
+        {
+            //1.无需重新分配内存，剩余可分配内存大于所插入元素个数
+            //一开始pos后的移动赋值，把新元素移动构造到pos前
+            if(size_type(m_end_of_storage - m_finish) >= n) {
+                //强制转换为无符号整型
+                size_type elems_after = m_finish - pos;
+                if (n < elems_after) {
+
+                   /*  template<class InputIt, class ForwardIt>
+                    ForwardIt uninitialized_move(InputIt first, InputIt last, ForwardIt d_first);*/
+                    std::uninitialized_move(m_finish - n , m_finish , m_finish)
+                    //std::move存在内存重叠问题（move原区域和现区域存在重叠，存在覆盖导致数据丢失问题）
+                    //std::move_backward,从最后一个元素往后搬，
+                    std::move_backward(pos ,m_finish-n , m_finish)
+
+                    std::fill_n(pos,n,val);
+                    m_finish += n;
+                    return pos;
+                }
+            }
+
+            //2 n>较大 ， 大于原本pos后元素数量，但整体还是小于capitcy
+            //pos前部分拷贝赋值，后面拷贝构造
+
+
+            //3.剩余capitcy ，开辟足够大的内存空间，然后将所有元素依次处理插入
+
+        }
+
         ~vector()
         {
             //destroy遍历 [first, last) 范围内的每一个对象，调用它们的析构函数
