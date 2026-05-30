@@ -259,7 +259,6 @@ namespace cxx{
                 //强制转换为无符号整型
                 size_type elems_after = m_finish - pos;
                 if (n < elems_after) {
-
                    /*  template<class InputIt, class ForwardIt>
                     ForwardIt uninitialized_move(InputIt first, InputIt last, ForwardIt d_first);*/
                     std::uninitialized_move(m_finish - n , m_finish , m_finish)
@@ -271,13 +270,34 @@ namespace cxx{
                     m_finish += n;
                     return pos;
                 }
+                else{
+                    //2 n>较大 ， 大于原本pos后元素数量，但整体还是小于capitcy
+                    //pos前部分拷贝赋值，后面拷贝构造
+
+                    //先移动pos位置原本元素 到 pos+n 后， 因此可预留pos 后 n个位置给新元素
+                    std::uninitialized_move(pos , m_finish , pos + n) ;
+                    std::fill(pos , m_finish , val) ; 
+                    std::uninitialized_fill(m_finish , pos + n , val) ;
+                    m_finish += n ;
+                    return pos ; 
+                }
+            }
+            else {
+                //3.剩余capitcy ，开辟足够大的内存空间，然后将所有元素依次处理插入
+
+                //size() 元素个数   ， 通过size() + n, 避免频繁扩容
+                size_type new_size = std::max(2 * size() , size() + n);
+                iterator new_start = allocate(new_size) ;
+                iterator new_finish = std::uninitialized_move(m_start , pos , new_start) ; 
+                iterator new_finish = std::uninitialized_fill_n(new_finish , n , val);
+                new_finish  = std::uninitialized_move(pos , m_finish , new_finish);
+
+                std::destroy(begin() , end());
+                
             }
 
-            //2 n>较大 ， 大于原本pos后元素数量，但整体还是小于capitcy
-            //pos前部分拷贝赋值，后面拷贝构造
 
 
-            //3.剩余capitcy ，开辟足够大的内存空间，然后将所有元素依次处理插入
 
         }
 
