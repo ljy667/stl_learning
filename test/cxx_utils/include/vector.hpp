@@ -243,16 +243,82 @@ namespace cxx{
         //重头戏insert
         iterator insert(iterator pos , const value_type& val)
         {
+            //判断容器是否还有空间
+            if(m_finish != m_end_of_storage)
+            {   //移动 m_finish - 1 位置的元素到m_finish
+                if(pos != m_finish){
+                    std::construct_at(m_finish , std::move(*(m_finish - 1)));
+                    std::move_backward(pos , m_finish - 1 , m_finish);
+                    *pos = val ;
+                    ++m_finish;
+                    return pos;}
+                else{
+                    //直接在最后一个位置构造
+                    std::construct_at(m_finish , val);
+                    ++ m_finish ;
+                    return pos ; 
+                }
+            }
+            else{
+                size_type new_size = std::max( 2 * size() , size() + 1);
+                iteraotr new_start = allocate(new_size) ;
+                iterator new_finish = std::uninitialized_move( m_start  , pos , new_start);
+                //即在new_finish处 增加一个元素
+                new_finish = std::construct_at(new_finish , val);
+                ++new_finish;
+                new_finish = std::uninitialized_move(pos , m_finish , new_finish);
 
+                std::destroy(begin() ,end());
+                deallocate(m_start) ; 
+                m_start = new_start ; 
+                m_finish = new_finish ;
+                m_end_of_storage m_start + new_size();
+            }  
         }
+
 
         iterator insert(iterator pos , value_type&& val)
         {
-            
+            //判断容器是否还有空间
+            if(m_finish != m_end_of_storage)
+            {   //移动 m_finish - 1 位置的元素到m_finish
+                if(pos != m_finish){
+                std::construct_at(m_finish , std::move(*(m_finish - 1)));
+                std::move_backward(pos , m_finish - 1 , m_finish);
+                *pos = std::move(val);
+                ++m_finish;
+                return pos;}
+                else{
+                    //直接在最后一个位置构造
+                    std::construct_at(m_finish , std::move(val));
+                    ++ m_finish ;
+                    return pos ; 
+                }
+            }
+            else{
+                size_type new_size = std::max( 2 * size() , size() + 1);
+                iteraotr new_start = allocate(new_size) ;
+                iterator new_finish = std::uninitialized_move( m_start  , pos , new_start);
+                //即在new_finish处 增加一个元素
+                new_finish = std::construct_at(new_finish , std::move(val));
+                ++new_finish;
+                new_finish = std::uninitialized_move(pos , m_finish , new_finish);
+
+                std::destroy(begin() ,end());
+                deallocate(m_start) ; 
+                m_start = new_start ; 
+                m_finish = new_finish ;
+                m_end_of_storage m_start + new_size();
+            }
         }
 
         iterator insert(iterator pos , size_type n , const value_type& val)
         {
+            if(n == 0)
+            {
+                return pos ;
+            }
+
             //1.无需重新分配内存，剩余可分配内存大于所插入元素个数
             //一开始pos后的移动赋值，把新元素移动构造到pos前
             if(size_type(m_end_of_storage - m_finish) >= n) {
@@ -284,22 +350,57 @@ namespace cxx{
             }
             else {
                 //3.剩余capitcy ，开辟足够大的内存空间，然后将所有元素依次处理插入
-
                 //size() 元素个数   ， 通过size() + n, 避免频繁扩容
                 size_type new_size = std::max(2 * size() , size() + n);
                 iterator new_start = allocate(new_size) ;
                 iterator new_finish = std::uninitialized_move(m_start , pos , new_start) ; 
+                iteraotr ret = new_finish ;
+                
                 iterator new_finish = std::uninitialized_fill_n(new_finish , n , val);
                 new_finish  = std::uninitialized_move(pos , m_finish , new_finish);
 
                 std::destroy(begin() , end());
-                
+                deallocate(m_start);
+
+                m_start = new_start ;
+                m_finish = new_finish ; 
+                m_end_of_storage = m_start + new_size ;
+
+                return ret ; 
             }
-
-
-
-
         }
+
+        iterator erase(iterator pos) {
+            return this-> erase (pos , pos+1) ; 
+        }
+
+        iterator erase(iterator first , iterator last)
+        {
+            iterator new_finish =  std::move(last , m_finish , first) ;
+            std::destroy(new_finish , m_finish) ; 
+            m_finish = new_finish ;
+            return first ;  
+        }
+
+        //尾部加入元素
+        void push_back(const value_type& val)
+        {
+            insert( m_finish , const value_type& val );
+        }
+
+        void push_back(value_type&& val)
+        {
+            insert(m_finish , value_type&& val) ;        
+        }
+
+        void pop_back()
+        {
+            //把结尾元素直接释放掉,指针往前移动一个
+            std::destroy( end() - 1) ; 
+            deallocate(end() - 1);
+            --m_finish;
+        }
+        
 
         ~vector()
         {
@@ -307,7 +408,6 @@ namespace cxx{
             std::destroy(begin() , end());  //析构资源
             deallocate(m_start);            //释放内存
         }
-
     };
 }
     
