@@ -18,9 +18,8 @@ class MyAllocator{
     static pointer allocate(size_type count)
     {
         auto s =  (pointer)operator new (count * sizeof(value_type)) ;
-        
         return s ;
-
+        
     }
 
     //2.释放
