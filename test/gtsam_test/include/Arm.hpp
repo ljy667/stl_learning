@@ -29,6 +29,10 @@ class Arm : public ForwardKinematics<gtsam::Vector , gtsam::Vector> {
     mutable gtsam::Pose3 base_pose_;
     gtsam::Vector theta_bias_ ;      //关节角偏差
 
+    /* 1. 真实机器人存在的误差
+    机器人机械装配、编码器安装、机械间隙导致：
+    编码器读数 = 真实关节转角 + 固定零位偏差 */
+
     std::vector<gtsam::Pose3> link_trans_notheta_;
 
   public:
@@ -117,19 +121,24 @@ class Arm : public ForwardKinematics<gtsam::Vector , gtsam::Vector> {
     }
 
     //https://www.doubao.com/thread/wd6c047d0a8c1dbcb
-
-    // Hoi,基座标系 -> 要控制连杆（连杆i）位置的旋转矩阵
-    // Hoj 关节j 到基座标的旋转矩阵 ， 
+    // 计算三维线速度的雅可比矩阵（三维）
+    // 计算第 j 个关节旋转时，对末端 / 连杆 i 产生的线速度贡献 ， 即雅可比矩阵第j列。
+    // Hoi,基座标系 -> 要控制连杆（连杆i）位置的旋转矩阵，该位置i在连杆j上
+    // Hoj 关节j 到基座标的旋转矩阵 
     // 即要计算关节j转动 对连杆i的影响  
 
-    // v = ω × r ,  Jvj = z_j × ( P_i − P_j )
-    /*  ω：角速度向量（方向 = 旋转轴方向，大小 = 转速）
+    /*  一个刚体绕某根轴转动时，轴上任意一点 Pj，带动另一个点 Pi 运动，线速度公式是
+        v = ω × r ,  Jvj = z_j × ( P_i − P_j )
+        ω：角速度向量（方向 = 旋转轴方向，大小 = 转速）
         r：从旋转中心指向运动点的向量（r = Pi − Pj）
-        ×：叉乘 */
-
+        ×：叉乘 
+        
+        ω = z_j · θ̇   ,  z_j为关节j的转轴 ，带入 v = ω × r
+        => v = z_j × (Pi − Pj) · θ̇   ； 而雅可比矩阵的定义为 v_end = J · θ̇
+        */
     gtsam::Vector3 getJvj(const gtsam::Matrix4& Hoi , const gtsam::Matrix4& Hoj) const{
       // ×乘无直接运算符，反对称矩阵（skewSymmetric） 完成运算，即a×b = skewSymmetric(a) * b。
-
+      
         return gtsam::skewSymmetric(Hoj.col(2).head<3>())*
         (Hoi.col(3).head<3>() - Hoj.col(3).head<3>());
     }
@@ -155,9 +164,6 @@ class Arm : public ForwardKinematics<gtsam::Vector , gtsam::Vector> {
 }
 
 };
-
-  
-
 
 }
 

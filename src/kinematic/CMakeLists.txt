@@ -19,6 +19,7 @@ find_package(pybind11 REQUIRED)
 
 add_library(kinematic STATIC
     src/car_control.cpp
+    src/robot_transform.cpp
 )
 
 target_include_directories(kinematic

@@ -24,20 +24,17 @@ namespace cxx{
         void deallocate(T* ptr){
             operator delete(ptr);
         }
-    vector() 
-            : m_start(nullptr) ,m_finish(nullptr) , m_end_of_storage(nullptr) {}
-
-
-    size_type size() const
-    {
-        return m_finish - m_start ;
-    }
-
+        
+        
         T* m_start;     //指向这段内存开头
         T* m_finish;    //指向元素的结尾
         T* m_end_of_storage;  //指向这段内存结尾 ,结束位置 > m_finish
+        
+        public:
+        
+        vector() 
+                : m_start(nullptr) ,m_finish(nullptr) , m_end_of_storage(nullptr) {}
 
-    public:
         void show() const
         {
             for(const value_type& val : *this)
@@ -75,8 +72,6 @@ namespace cxx{
             return m_finish;
         }
 
-        vector() : m_start(nullptr) , m_finish(nullptr) , m_end_of_storage(nullptr){}
-
         //把vector初始化为含有n个value_type的容器
         vector(size_type n , const value_type& val = value_type())
         {   
@@ -84,7 +79,7 @@ namespace cxx{
             m_start  = allocate(n) ;
             //利用标准库构造对象： std::unintialize_fill_n 调用val的拷贝构造
             //std::fill_n 调用拷贝赋值
-            std::unintialize_fill_n(m_start , n , val);
+            std::uninitialized_fill_n(m_start , n , val);
             m_finish = m_end_of_storage = m_start + n;
         }
 
@@ -94,7 +89,7 @@ namespace cxx{
         {
             size_type n = std::distance(first, last);
             m_start = allocate(n);
-            std::uninitalized_copy(first , last , m_start);
+            std::uninitialized_copy(first , last , m_start);
             m_finish = m_end_of_storage = m_start + n;
         }
 
@@ -154,6 +149,8 @@ namespace cxx{
             m_finish = other.m_finish;
             m_end_of_storage = other.m_end_of_storage;
             other.m_start = other.m_finish = other.m_end_of_storage = nullptr;
+
+            return *this;
         }
 
 
@@ -261,7 +258,7 @@ namespace cxx{
             }
             else{
                 size_type new_size = std::max( 2 * size() , size() + 1);
-                iteraotr new_start = allocate(new_size) ;
+                iterator new_start = allocate(new_size) ;
                 iterator new_finish = std::uninitialized_move( m_start  , pos , new_start);
                 //即在new_finish处 增加一个元素
                 new_finish = std::construct_at(new_finish , val);
@@ -272,7 +269,7 @@ namespace cxx{
                 deallocate(m_start) ; 
                 m_start = new_start ; 
                 m_finish = new_finish ;
-                m_end_of_storage m_start + new_size();
+                m_end_of_storage  = m_start + new_size;
             }  
         }
 
@@ -297,7 +294,7 @@ namespace cxx{
             }
             else{
                 size_type new_size = std::max( 2 * size() , size() + 1);
-                iteraotr new_start = allocate(new_size) ;
+                iterator new_start = allocate(new_size) ;
                 iterator new_finish = std::uninitialized_move( m_start  , pos , new_start);
                 //即在new_finish处 增加一个元素
                 new_finish = std::construct_at(new_finish , std::move(val));
@@ -308,7 +305,7 @@ namespace cxx{
                 deallocate(m_start) ; 
                 m_start = new_start ; 
                 m_finish = new_finish ;
-                m_end_of_storage m_start + new_size();
+                m_end_of_storage = m_start + new_size;
             }
         }
 
@@ -327,10 +324,10 @@ namespace cxx{
                 if (n < elems_after) {
                    /*  template<class InputIt, class ForwardIt>
                     ForwardIt uninitialized_move(InputIt first, InputIt last, ForwardIt d_first);*/
-                    std::uninitialized_move(m_finish - n , m_finish , m_finish)
+                    std::uninitialized_move(m_finish - n , m_finish , m_finish);
                     //std::move存在内存重叠问题（move原区域和现区域存在重叠，存在覆盖导致数据丢失问题）
                     //std::move_backward,从最后一个元素往后搬，
-                    std::move_backward(pos ,m_finish-n , m_finish)
+                    std::move_backward(pos ,m_finish-n , m_finish);
 
                     std::fill_n(pos,n,val);
                     m_finish += n;
@@ -354,9 +351,9 @@ namespace cxx{
                 size_type new_size = std::max(2 * size() , size() + n);
                 iterator new_start = allocate(new_size) ;
                 iterator new_finish = std::uninitialized_move(m_start , pos , new_start) ; 
-                iteraotr ret = new_finish ;
+                iterator ret = new_finish ;
                 
-                iterator new_finish = std::uninitialized_fill_n(new_finish , n , val);
+                new_finish = std::uninitialized_fill_n(new_finish , n , val);
                 new_finish  = std::uninitialized_move(pos , m_finish , new_finish);
 
                 std::destroy(begin() , end());
@@ -385,12 +382,12 @@ namespace cxx{
         //尾部加入元素
         void push_back(const value_type& val)
         {
-            insert( m_finish , const value_type& val );
+            insert( m_finish , val );
         }
 
         void push_back(value_type&& val)
         {
-            insert(m_finish , value_type&& val) ;        
+            insert(m_finish ,  val) ;        
         }
 
         void pop_back()

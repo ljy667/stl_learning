@@ -33,7 +33,7 @@ namespace gpmp2 {
             jpx.resize(this->dof());
             if(jvx) (*jvx).get().resize(dof());
 
-            //每个连杆对应一个雅可比矩阵
+            //每个连杆对应一个雅可比矩阵,即每个连杆末端 =>该连杆关节的雅可比矩阵
             if(J_jpx_jp) (*J_jpx_jp).get().assign(dof() , gtsam::Matrix::Zero(6, dof()));
             if(J_jvx_jp) (*J_jvx_jp).get().assign(dof() , gtsam::Matrix::Zero(6, dof()));
             if(J_jvx_jv) (*J_jvx_jv).get().assign(dof() , gtsam::Matrix::Zero(6, dof()));
@@ -115,32 +115,35 @@ namespace gpmp2 {
             //创建并初始化了一个 DOF × DOF 大小的二维动态数组（矩阵）
             //https://www.doubao.com/thread/w15472d13f70150a0
             
-            // J_jpx_jp：雅可比矩阵 对 关节位置 的导数
-            // J_jvx_jp：雅可比矩阵 对 关节速度 的导数
+            //   J_jpx_jp：雅可比矩阵 对 关节位置 的导数
+            //   每一个连杆 (i+1) 的位姿，对 每一个关节 (j) 的角度，求导
+            //   连杆必比关节多一个
+
             if(J_jpx_jp || J_jvx_jv ){
                 for(std::size_t i = 0 ; i < dof() ; i++)
-                for(std::size_t j=0 ; j <= i ; j++ )
-                if(i > j)
-                //情况1：j<i (非末端关节，需要递推)
-                
-                // Ho[i+1]=Ho[0]⋅H[0]⋅H[1]⋅⋯⋅H[i]
-                
-                // 只有 H[j] 与关节角 q_j 相关，对 q_j 求导时：
-                //https://www.doubao.com/thread/w150bd2bcc03f928f
-                dho_dq[i][j] = Ho[j] * dh[j] * Hoinv[j+1] * Ho[i+1];
-                else
-                dho_dq[i][j] = Ho[j] * dh[j];    
+                    for(std::size_t j=0 ; j <= i ; j++ )
+                        if(i > j)
+                        // 情况1：j<i (非末端关节，需要递推)
+                        // Ho[i+1]=Ho[0]⋅H[0]⋅H[1]⋅⋯⋅H[i] 
+                        // 只有 H[j] 与 关节角 q_j 相关，对 q_j 求导时：
+                        // https://www.doubao.com/thread/w150bd2bcc03f928f
+                            dho_dq[i][j] = Ho[j] * dh[j] * Hoinv[j+1] * Ho[i+1];
+                        else
+                            dho_dq[i][j] = Ho[j] * dh[j];
             }
             
             //开始计算位置/速度正运动学 / 雅可比
             for(std::size_t i = 0 ; i < dof() ;i++){
                 //基于变换矩阵，jpx的i对应 ho[i+1],因为ho[i+1]数组的首元素存储了世界坐标系 → 机械臂底座的旋转矩阵
                 
+                //<3,3>：提取 3 行 3 列子矩阵 , (0,0)：从第 0 行、第 0 列开始截取
+
                 jpx[i] = gtsam::Pose3(gtsam::Rot3(Ho[i+1].block<3,3>(0,0)),
                     gtsam::Point3(Ho[i+1].col(3).head<3>()));
 
                 if(jv && jvx)
                 {
+                    //填充机器人线速度各个连杠线速度向量jvx
                     //std::optional<std::reference_wrapper<std::vector<gtsam::Vector3>>> jvx,
                     (*jvx).get()[i] = J[i] * (*jv).get()[i] ;
                 }
@@ -151,24 +154,26 @@ namespace gpmp2 {
                 //https://www.doubao.com/thread/w773ea478b4328489
 
                 if(J_jpx_jp){ 
-                //填充J_jpx_jp的第i个矩阵
-                gtsam::Matrix Jp =  (*J_jpx_jp).get()[i];
-                const gtsam::Matrix4 inv_jpx_i = jpx[i].inverse().matrix();
-                for(std::size_t j = 0 ; j<= i ; j++) 
-                {   
-                    //从李代数中提取雅可比矩阵列
-                    const gtsam::Matrix4 sym_se3 = inv_jpx_i * dho_dq[i][j];
-                    Jp.col(j) = (gtsam::Vector6() << gtsam::Vector3(sym_se3(2,1), sym_se3(0,2),
-                        sym_se3(1,0)), sym_se3.col(3).head<3>()).finished();   
+                    //填充J_jpx_jp的第i个矩阵
+                    //https://www.doubao.com/thread/x1bed31d3c47685ba8045f971cf257836
+                    gtsam::Matrix Jp =  (*J_jpx_jp).get()[i];
+                    const gtsam::Matrix4 inv_jpx_i = jpx[i].inverse().matrix();
+                    for(std::size_t j = 0 ; j <= i ; j++) 
+                    {                       
+                        //从李代数中提取雅可比矩阵列，
+                        //dho_dq[i][j] 是一个 4×4 矩阵，本质是：输出量关于第 j 个位姿李代数增量的微分，也就是切空间元素
+                        const gtsam::Matrix4 sym_se3 = inv_jpx_i * dho_dq[i][j];
+                        Jp.col(j) = (gtsam::Vector6() << gtsam::Vector3(sym_se3(2,1), sym_se3(0,2),
+                            sym_se3(1,0)), sym_se3.col(3).head<3>()).finished();   
                     }
                 }
             
             // diff Jvj to vJp
             if (J_jvx_jp) {
             gtsam::Matrix& Jv = (*J_jvx_jp).get()[i];
-            //Jv.setZero();
-            // Jv each col <= j (j <= i)
-            // Jv.col(j) = dvxi_dq.col(j) = d_Ji_qj * vi
+            //  Jv.setZero();
+            //  Jv each col <= j (j <= i)
+            //  Jv.col(j) = dvxi_dq.col(j) = d_Ji_qj * vi
             for (size_t j = 0; j <= i; j++) {
                     gtsam::Matrix d_Ji_qj = gtsam::Matrix::Zero(3, dof());
 
@@ -176,10 +181,10 @@ namespace gpmp2 {
                     // d_Ji_qj.col(k) = d(getJvj(i, k-1))_dqj  (k <= i)
                     d_Ji_qj.col(0) = getdJvj(Ho[i+1], Ho[0], dho_dq[i][j], gtsam::Matrix4::Zero());    // k-1 < 0, use zero for dH-1
                     for (size_t k = 1; k <= i; k++) {
-                    if (k-1 >= j)
-                        d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dho_dq[i][j], dho_dq[k-1][j]);
-                    else
-                        d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dho_dq[i][j],gtsam::Matrix4::Zero());    // zero dHo_dq when j > k-1
+                        if (k-1 >= j)
+                            d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dho_dq[i][j], dho_dq[k-1][j]);
+                        else
+                            d_Ji_qj.col(k) = getdJvj(Ho[i+1], Ho[k], dho_dq[i][j],gtsam::Matrix4::Zero());    // zero dHo_dq when j > k-1
                     }
                     Jv.col(j) = d_Ji_qj * (*jv).get();
                 }
@@ -189,6 +194,5 @@ namespace gpmp2 {
             if (J_jvx_jv)
             (*J_jvx_jv).get()[i] = J[i];
         }
-            
         }
 }

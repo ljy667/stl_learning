@@ -123,7 +123,6 @@ private:
         return m_hash(m_get_key(val)) % m_buckets.size();
     };
 
-
     size_type getBucketIdx(const value_type& val , size_t bucketSize) const 
     {
         return m_hash(m_get_key(val)) % bucketSize;
@@ -136,7 +135,49 @@ private:
 
     //重排哈希
     void rehash(size_type newSizeHint){
+        size_type nBuckets = nextPrime(newSizeHint);
 
+        //static_cast<float>(m_size) / static_cast<float>(nBuckets)为哈希表负载因子
+        //若大于最大负载因子，则继续
+        while(static_cast<float>(m_size) / static_cast<float>(nBuckets)>max_load_factor()) 
+        {
+            nBuckets = nextPrime(nBuckets + 1);
+        }
+        std::vector<Node*> newBuckets(nBuckests, nullptr);
+        //遍历每个桶的头节点
+        for(auto& head : m_buckets)
+        {
+            if(head != nullptr)
+            {
+                //这里可能是
+                while(head != nullptr)
+                {
+                    //获取原桶的首节点
+                    Node* cur = head;
+                    //基于首节点获取桶索引
+                    std::size_t idx = getBucketIdx(cur->val , nBuckets);
+                    //while循环跳出变量，（下一轮迭代所需变量）
+                    head = cur -> next ;
+                    
+                    //  这里把newBuckets原本的首地址A 赋值给 next
+                    //  从而实现 cur->next 接住 newBucktets[idx] 的首地址
+
+                    //这里把newBuckets理解为一个别名，为存储元素的引用类型
+                    cur -> next = newBuckets[idx];
+
+                    // 让新桶的开头 直接变成 cur
+                    // 现在 cur 就是新桶的第一个节点了
+
+                    //重新赋值别名
+                    newBuckets[idx] = cur ;
+
+                    //最终效果即为newBuckets[idx]链表前面接了一个cur
+                    //如果存在同一个桶中咋办，即分配到同一个桶，答案为后来者添加到链表首
+
+                }
+            }
+        }
+        m_buckets.swap(newBuckets);
     };
 
     Node* allocNode(){
@@ -163,14 +204,124 @@ public:
     };
  
     //增删改查
+    // ============================= 查 ===================================
+    iterator insert(const value_type& val)
+    {
+        //扩容检查,以元素个数与桶个数比例
+        if (static_cast<float>(m_size+1)/static_cast<float>(m_buckets.size()) > max_load_factor()){
+            rehash(m_buckets.size() + 1) ;  //找到大于等于这个数的下一个质数
+        }
 
-    iterator insert(const value_type& val);
-    size_type erase(const Key_type& key) ;
-    iterator find(const Key_type& key);
+        //如果val已有
+        auto it  =  find(m_get_key(val)) ;
+        if(it != end())
+        {
+            return it ;
+        }
+        
+        size_type idx = getBucketIdx(val);
+        Node* tmp = allocNode();
+        std::counstruct_at(tmp->val , val) ;
+       
+        //====================插入链表头常规操作==================
 
-    iterator begin() ;
-    iterator begin() const ;
-    iterator end() ;
-    iterator end() const ;
+        tmp -> next = m_buckets[idx] ;
+        m_buckets[idx] = tmp;
+        
+        //====================插入链表头常规操作==================
+
+        ++m_size ; 
+        return iterator(tmp , this) ; //返回新节点的迭代器
+    };
+
+
+
+    size_type erase(const Key_type& key) {
+        //链表删除操作
+        size_type idx =  m_hash(key) % m_buckets.size();
+        if(m_buckets[idx] == nullptr){
+            return 0 ;
+        }
+        //m_get_Key 根据node中的val获取key
+        if(m_get_key(m_buckets[idx] -> val) == key){
+            Node* tmp = m_buckets[idx] ;
+            m_bucktets[idx] = tmp -> next;
+
+            //节点中的元素先析构
+            std::destroy_at(&tmp ->val);
+            deallocNode(tmp);  //释放内存
+            --m_size;
+            //返回删除的节点个数
+            return 1 ;
+        }
+
+        //获取idx桶的首元素
+        Node* cur = m_bucktets[idx] ;  
+        Node* next = cur -> next ;
+        while(next != nullptr)
+        {
+            if(m_get_key(next -> val) == key) 
+            {
+                cur->next = next->next ; 
+                std::destroy_at(&next->val) ; 
+                deallocNode(next) ; 
+                --m_size;
+                return 1;
+            }
+            //while 循环条件
+            cur = next ;
+            next = next->next;
+        }
+    };
+    
+    iterator find(const Key_type& key){
+        //如果有的话，返回迭代器，没有的话返回尾后迭代器
+
+        //找到桶
+        size_type idx = m_hash(key) % m_buckets.size(); 
+        for(Node* cur = m_buckets[idx] ; cur != nullptr ;  cur = cur->next ){
+            //根据哈希值选择桶， 在对应桶中遍历链表 ， 根据链表的值选择
+            if(m_get_key(cur -> val) == key){
+                return  iterator(cur , this) ;
+            }
+        }
+    };
+
+
+    // ============================= 查 ===================================
+
+    //增删改查 ，第一个元素不一定是第一个链表
+    iterator begin() {
+        //遍历存储链表的vector————m_buckets
+        for(auto it = m_buckets.begin(); it != m_buckets.end()){
+            if(*it != nullptr) {
+                //第一个链表非空
+                return iterator(*it , this);
+            }
+        }
+        return end() ;  //全是空链表， 则返回尾后迭代器
+    };
+
+    iterator begin() const
+    {
+        for(auto it = m_buckets.begin(); it != m_buckets.end() , ++it){
+            if(*it != nullptr) {
+                //第一个链表非空
+                return iterator(*it , this);
+            }
+        }
+        return end() ;  //全是空链表， 则返回尾后迭代器
+    } ;
+
+
+    iterator end() 
+    {
+        iterator(nullptr ,this);
+    };
+
+    iterator end() const {
+        iterator(nullptr ,this);
+
+    };
 
 };

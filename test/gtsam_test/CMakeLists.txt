@@ -33,7 +33,7 @@ add_library( gpmp2_lib STATIC ${SOURCES})
 
 
 add_executable(my_gtsam_app
-  main.cpp
+  main_demo.cpp
 )
 
 set_target_properties(my_gtsam_app gpmp2_lib PROPERTIES
